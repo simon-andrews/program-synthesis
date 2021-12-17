@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from . import intermediate_representation as ir
 from .enumerator import enumerate_programs
-from .translation import to_c
+from .translation import to_c, to_python, to_scheme
 from .validator import Oracle, Validator, fill_holes
 
 
@@ -24,7 +24,7 @@ def synthesize(
     constant_numbers: List[str] = [],
     successes_to_pass: int = 20,
     maximum_depth: int = 6,
-    target_lang: str = "C"
+    target_lang: Optional[str] = None
 ) -> Optional[ir.Expression]:
     v = Validator(
         oracle,
@@ -38,7 +38,6 @@ def synthesize(
         numbers=input_numbers + constant_numbers,
         maximum_depth=maximum_depth,
     ):
-        print(program)
         if v.validate_program(program):
             print(f"accepting {program} with model {v.model}")
             print(f"{len(v.example_bank)} constraints satisfied:")
@@ -50,6 +49,10 @@ def synthesize(
             program = fill_holes(program, constants)
             if target_lang == "C":
                 print(to_c(program, number_inputs=input_numbers, boolean_inputs=input_booleans))
+            elif target_lang == "Python":
+                print(to_python(program, number_inputs=input_numbers, boolean_inputs=input_booleans))
+            elif target_lang == "Scheme":
+                print(to_scheme(program, number_inputs=input_numbers, boolean_inputs=input_booleans))
             return program
         else:
             print(f"rejecting {program}")
@@ -124,6 +127,14 @@ if __name__ == "__main__":  # pragma: no cover
         type=int,
         default=10,
     )
+    parser.add_argument(
+        "-o",
+        "--target",
+        help="target language",
+        type=str,
+        default=None,
+        choices=["C", "Python", "Scheme"]
+    )
     args = parser.parse_args()
 
     target_type = (
@@ -139,4 +150,5 @@ if __name__ == "__main__":  # pragma: no cover
         args.constant_numbers,
         args.successes_to_pass,
         args.max_depth,
+        args.target
     )

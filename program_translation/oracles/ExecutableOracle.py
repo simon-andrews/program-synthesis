@@ -1,5 +1,6 @@
-from ..validator import Oracle, OracleInput
 import subprocess
+
+from ..validator import Oracle, OracleInput
 
 
 class ExecutableOracle(Oracle):
